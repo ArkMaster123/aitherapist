@@ -240,12 +240,18 @@ source venv/bin/activate
 .
 ├── app/                          # Next.js frontend
 │   ├── api/chat/route.ts        # AI streaming endpoint
+│   ├── voice/page.tsx           # Voice chat page
 │   ├── globals.css              # Terminal styling
 │   └── page.tsx                 # Main page
 ├── components/                   # React components
 │   ├── terminal-chat.tsx        # Chat interface
 │   ├── terminal-input.tsx       # Input handling
 │   └── terminal-output.tsx      # Message display
+├── modal-backend/                # Modal backend (deployed separately)
+│   ├── src/
+│   │   ├── moshi.py            # Moshi WebSocket server (runs on Modal)
+│   │   └── common.py           # Modal app config
+│   └── README.md                # Modal setup instructions
 ├── scripts/                      # Python ML scripts
 │   ├── train_qwen_therapist_lora.py    # Training script
 │   ├── evaluate_model.py        # Evaluation suite
@@ -257,6 +263,30 @@ source venv/bin/activate
 │   └── lora-training-plan.md    # Training guide
 └── README.md                     # You are here
 ```
+
+### Architecture Overview
+
+**Important:** This project has two separate parts that run independently:
+
+1. **Next.js Frontend** (runs on Vercel or locally)
+   - React/TypeScript web app
+   - Text chat interface (`/chat`)
+   - Voice chat interface (`/voice`) - connects to Modal backend
+   - No Python code runs here!
+
+2. **Modal Backend** (`modal-backend/` directory)
+   - Python code that gets deployed to Modal (cloud)
+   - Runs the Moshi speech-to-speech model
+   - Provides WebSocket endpoint for voice chat
+   - **This Python code does NOT run in Next.js** - it runs separately on Modal's infrastructure
+
+**How They Connect:**
+- Next.js frontend connects to Modal backend via WebSocket
+- Modal backend URL: `wss://your-username--therapist-voice-chat-moshi-web.modal.run/ws`
+- Configured via environment variables: `NEXT_PUBLIC_MODAL_USERNAME` and `NEXT_PUBLIC_MODAL_APP_NAME`
+
+**Why Python is in the repo:**
+The Python files are kept in the repository for version control and deployment, but they're deployed separately to Modal using `modal deploy`. The Next.js app never executes Python - it just connects to the deployed Modal service.
 
 ### Training Your Own Model
 
@@ -285,6 +315,40 @@ modal run scripts/vllm_server.py
 | `AI_MODEL` | Model endpoint | `openai/gpt-4o-mini` |
 | `OPENAI_API_BASE` | Custom API URL | `https://your-modal-endpoint.modal.run` |
 | `OPENAI_API_KEY` | API key | `sk-...` |
+| `NEXT_PUBLIC_MODAL_USERNAME` | Your Modal username | `your-username` |
+| `NEXT_PUBLIC_MODAL_APP_NAME` | Modal app name | `therapist-voice-chat` |
+
+### Voice Chat Setup
+
+The voice chat feature requires deploying the Modal backend separately:
+
+```bash
+# 1. Navigate to Modal backend directory
+cd modal-backend
+
+# 2. Install Modal CLI
+pip install modal
+
+# 3. Authenticate with Modal
+modal setup
+
+# 4. Deploy the backend
+modal deploy -m src.moshi
+
+# 5. Note the deployment URL (shown in terminal output)
+# It will be: wss://your-username--therapist-voice-chat-moshi-web.modal.run/ws
+
+# 6. Add to your .env.local:
+NEXT_PUBLIC_MODAL_USERNAME=your-username
+NEXT_PUBLIC_MODAL_APP_NAME=therapist-voice-chat
+
+# 7. Start Next.js app
+npm run dev
+
+# 8. Visit http://localhost:3000/voice
+```
+
+**Note:** The Python code in `modal-backend/` runs on Modal's cloud infrastructure, not in your Next.js app. The Next.js app only connects to it via WebSocket.
 
 ---
 

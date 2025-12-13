@@ -21,7 +21,8 @@ import {
   ChevronRight,
   Terminal,
   BookOpen,
-  Cpu
+  Cpu,
+  Mic
 } from 'lucide-react';
 
 const ASCII_LOGO = `
@@ -307,7 +308,19 @@ export default function Home() {
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   <MessageCircle className="w-5 h-5" />
-                  <span>start_session</span>
+                  <span>text_chat</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+              </Link>
+
+              <Link
+                href="/voice"
+                className="group relative px-8 py-4 bg-[#58a6ff] hover:bg-[#79b8ff] text-white font-mono text-center rounded-lg transition-all duration-200 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <Mic className="w-5 h-5" />
+                  <span>voice_chat</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
