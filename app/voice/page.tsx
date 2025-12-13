@@ -109,40 +109,6 @@ export default function VoiceChatPage() {
       setMuted(false);
       newRecorder.setRecordingGain(1);
 
-      // Start speech recognition for user transcription
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        let userText = '';
-
-        recognition.onresult = (event: any) => {
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              userText += transcript + ' ';
-              setTranscript(prev => [...prev, { text: userText.trim(), speaker: 'user' }]);
-              userText = '';
-            } else {
-              setTranscript(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.speaker === 'user' && last?.pending) {
-                  return [...prev.slice(0, -1), { text: userText + transcript, speaker: 'user', pending: true }];
-                }
-                return [...prev, { text: userText + transcript, speaker: 'user', pending: true }];
-              });
-            }
-          }
-        };
-
-        recognition.onerror = () => {};
-        recognition.start();
-        recognitionRef.current = recognition;
-      }
-
       const analyzerContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyzer = analyzerContext.createAnalyser();
       analyzer.fftSize = 256;
