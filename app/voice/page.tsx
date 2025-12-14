@@ -46,20 +46,41 @@ export default function VoiceChatPage() {
   const animationFrameRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const getWebSocketURL = () => {
-    const modalAppName = process.env.NEXT_PUBLIC_MODAL_APP_NAME || 'therapist-voice-chat';
-    const modalUsername = process.env.NEXT_PUBLIC_MODAL_USERNAME || 'your-username';
-    return `wss://${modalUsername}--${modalAppName}-moshi-web.modal.run/ws`;
-  };
+  const [wsUrl, setWsUrl] = useState<string | null>(null);
+
+  // Fetch WebSocket URL from server-side API (keeps credentials private)
+  useEffect(() => {
+    fetch('/api/voice/ws-url')
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(data => {
+            throw new Error(data.message || data.error || 'Failed to get voice server URL');
+          });
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.wsUrl) {
+          setWsUrl(data.wsUrl);
+        } else {
+          throw new Error(data.error || 'Voice server URL not returned');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch WebSocket URL:', err);
+        setErrorMessage(err.message || 'Failed to get voice server URL. Please check your .env.local file has MODAL_USERNAME and MODAL_APP_NAME set.');
+      });
+  }, []);
 
   const scheduleAudioPlayback = useCallback((newAudioData: Float32Array) => {
     if (!audioContextRef.current) return;
 
     const audioContext = audioContextRef.current;
     const sampleRate = audioContext.sampleRate;
+    const numberOfChannels = 1;
     const nowTime = audioContext.currentTime;
 
-    const newBuffer = audioContext.createBuffer(1, newAudioData.length, sampleRate);
+    const newBuffer = audioContext.createBuffer(numberOfChannels, newAudioData.length, sampleRate);
     newBuffer.copyToChannel(new Float32Array(newAudioData), 0);
     const sourceNode = audioContext.createBufferSource();
     sourceNode.buffer = newBuffer;
@@ -69,8 +90,11 @@ export default function VoiceChatPage() {
     sourceNode.start(startTime);
     scheduledEndTimeRef.current = startTime + newBuffer.duration;
 
+    // Store startTime on the node for cleanup checks (like QuiLLMan)
+    (sourceNode as any).startTime = startTime;
+
     if (sourceNodeRef.current && sourceNodeRef.current.buffer) {
-      const currentEndTime = scheduledEndTimeRef.current;
+      const currentEndTime = (sourceNodeRef.current as any).startTime + sourceNodeRef.current.buffer.duration;
       if (currentEndTime <= nowTime) {
         sourceNodeRef.current.disconnect();
       }
@@ -138,6 +162,11 @@ export default function VoiceChatPage() {
       return;
     }
 
+    if (!wsUrl) {
+      setErrorMessage('Voice server URL not available. Please refresh the page.');
+      return;
+    }
+
     setConnectionStatus('connecting');
     setErrorMessage('');
 
@@ -152,7 +181,6 @@ export default function VoiceChatPage() {
       await decoder.ready;
       decoderRef.current = decoder;
 
-      const wsUrl = getWebSocketURL();
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
 

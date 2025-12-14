@@ -38,6 +38,7 @@ N_GPU = 1
     image=vllm_image,
     gpu=f"A10G:{N_GPU}",
     scaledown_window=15 * MINUTES,
+    min_containers=1,  # Keep at least 1 container warm to avoid cold starts
     timeout=10 * MINUTES,
     volumes={
         "/root/.cache/huggingface": hf_cache_vol,

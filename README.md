@@ -283,7 +283,7 @@ source venv/bin/activate
 **How They Connect:**
 - Next.js frontend connects to Modal backend via WebSocket
 - Modal backend URL: `wss://your-username--therapist-voice-chat-moshi-web.modal.run/ws`
-- Configured via environment variables: `NEXT_PUBLIC_MODAL_USERNAME` and `NEXT_PUBLIC_MODAL_APP_NAME`
+- Configured via server-side environment variables: `MODAL_USERNAME` and `MODAL_APP_NAME` (not exposed to client)
 
 **Why Python is in the repo:**
 The Python files are kept in the repository for version control and deployment, but they're deployed separately to Modal using `modal deploy`. The Next.js app never executes Python - it just connects to the deployed Modal service.
@@ -315,8 +315,8 @@ modal run scripts/vllm_server.py
 | `AI_MODEL` | Model endpoint | `openai/gpt-4o-mini` |
 | `OPENAI_API_BASE` | Custom API URL | `https://your-modal-endpoint.modal.run` |
 | `OPENAI_API_KEY` | API key | `sk-...` |
-| `NEXT_PUBLIC_MODAL_USERNAME` | Your Modal username | `your-username` |
-| `NEXT_PUBLIC_MODAL_APP_NAME` | Modal app name | `therapist-voice-chat` |
+| `MODAL_USERNAME` | Your Modal username (server-side only) | `your-username` |
+| `MODAL_APP_NAME` | Modal app name (server-side only) | `therapist-voice-chat` |
 
 ### Voice Chat Setup
 
@@ -338,9 +338,9 @@ modal deploy -m src.moshi
 # 5. Note the deployment URL (shown in terminal output)
 # It will be: wss://your-username--therapist-voice-chat-moshi-web.modal.run/ws
 
-# 6. Add to your .env.local:
-NEXT_PUBLIC_MODAL_USERNAME=your-username
-NEXT_PUBLIC_MODAL_APP_NAME=therapist-voice-chat
+# 6. Add to your .env.local (server-side only, not exposed to client):
+MODAL_USERNAME=your-username
+MODAL_APP_NAME=therapist-voice-chat
 
 # 7. Start Next.js app
 npm run dev

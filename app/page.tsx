@@ -326,6 +326,18 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
               </Link>
               
+              <Link
+                href="/evals"
+                className="group relative px-8 py-4 bg-[#a371f7] hover:bg-[#b584f8] text-white font-mono text-center rounded-lg transition-all duration-200 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>view_evals</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+              </Link>
+              
               <a
                 href="https://huggingface.co/ArkMaster123/qwen2.5-7b-therapist"
                 target="_blank"
